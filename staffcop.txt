@@ -1,0 +1,45 @@
+@echo off
+title Удаление Staffcop Agent
+
+echo Программа для удаления Staffcop Agent. Требуются права администратора.
+
+:: Проверка наличия прав администратора
+net session >nul 2>&1
+if %errorLevel% == 0 (
+  echo Права администратора обнаружены.
+) else (
+  echo Недостаточно прав администратора. Запустите скрипт от имени администратора.
+  pause
+  exit /b
+)
+
+:: Остановка служб Staffcop (если они есть)
+echo Остановка служб Staffcop...
+sc stop "имя_службы_Staffcop1" 2>nul
+sc stop "имя_службы_Staffcop2" 2>nul
+net stop "staffcop_agent"
+net stop "staffcop_update"
+timeout /t 5 /nobreak >nul
+
+:: Удаление файлов Staffcop (замените путь на актуальный)
+echo Удаление файлов Staffcop...
+rmdir /s /q "C:\\Program Files\\Staffcop Agent" 2>nul
+del /f /q "C:\\Windows\\System32\\имя_файла_Staffcop.dll" 2>nul
+echo msiexec.exe /uninstall C:\\windows\\agent.msi /qn /norestart REBOOT=ReallySuppress
+msiexec.exe /uninstall C:\\windows\\agent.msi /qn /norestart REBOOT=ReallySuppress
+takeown /F "C:\\Program Files\\Staffcop Agent" /R /D Y
+icacls "C:\\Program Files\\Staffcop Agent" /grant administrators:F /T
+rmdir /s /q "C:\\Program Files\\Staffcop Agent"
+
+:: Удаление записей из реестра (замените путь на актуальный)
+echo Удаление записей из реестра...
+reg delete "HKEY_LOCAL_MACHINE\\SOFTWARE\\Staffcop" /f 2>nul
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\staffcop_agent" /f
+reg delete "HKLM\\SYSTEM\\CurrentControlSet\\Services\\staffcop_update" /f
+reg delete "HKLM\\SOFTWARE\\Wow6432Node\\Staffcop" /f
+reg delete "HKLM\\SOFTWARE\\Staffcop" /f
+
+
+echo Удаление Staffcop Agent завершено.
+pause
+exit /b
