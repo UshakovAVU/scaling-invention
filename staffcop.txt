@@ -1,3 +1,4 @@
+#Ошибка в коде
 @echo off
 title Удаление Staffcop Agent
 
